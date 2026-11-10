@@ -103,13 +103,27 @@ if submit:
     }])
 
     # Apply the same encoding used during training
-    customer_encoded = pd.get_dummies(
-        customer, drop_first=True, dtype=int
-    )
+   customer_encoded = pd.DataFrame(
+    0, index=[0], columns=model_columns
+)
 
-    customer_encoded = customer_encoded.reindex(
-        columns=model_columns, fill_value=0
-    )
+numeric_columns = [
+    "SeniorCitizen",
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges"
+]
+
+for col in numeric_columns:
+    customer_encoded[col] = customer[col].iloc[0]
+
+for col in model_columns:
+    if "_" in col:
+        feature, category = col.split("_", 1)
+
+        if feature in customer.columns:
+            if str(customer.loc[0, feature]) == category:
+                customer_encoded.loc[0, col] = 1
 
     prediction = model.predict(customer_encoded)[0]
     probability = model.predict_proba(customer_encoded)[0][1]
